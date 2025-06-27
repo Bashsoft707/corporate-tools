@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import { morganStream, logger } from "./utils";
 import morgan from "morgan";
 import compression from "compression";
+import axios from "axios";
 
 dotenv.config();
 
@@ -37,6 +38,49 @@ app.use(
 
 app.get("/", (_req, res) => {
   res.send("Hello, Welcome to Itump Service Corporate tools!");
+});
+
+app.get("/arizona", (req: Request, res: Response, next: NextFunction) => {
+  (async () => {
+    try {
+      const response = await axios.get(
+        "https://apps.azsos.gov/apps/tntp/api/s/select",
+        {
+          data: {
+            Payload: {
+              page: 1,
+              size: 8,
+              search: "name",
+              name: req.query.name,
+              v: "201912231700",
+            },
+          },
+          headers: {
+            Accept: "application/json",
+            "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.01",
+            "Content-Type": "application/json",
+            referer: "https://apps.azsos.gov/apps/tntp/se.html",
+            "sec-ch-ua":
+              '"Google-Chrome",v=137,"Chromium",v="137","Not/A)Brand",v="24"',
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/",
+            "x-requested-with": "SMLHttpRequest",
+            XSRF_TOKEN: process.env.ARIZONA_API_KEY || "arizona_api_key",
+          },
+        }
+      );
+
+      const data = response.data;
+
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching data from Arizona:", error);
+      logger.error(`Error fetching data from Arizona: ${error}`);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error" });
+    }
+  })().catch(next);
 });
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
