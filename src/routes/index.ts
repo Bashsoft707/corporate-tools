@@ -1,8 +1,14 @@
 import express from "express";
-import { californiaBusiness } from "../controllers/business";
+import {
+  californiaBusiness,
+  coloradoBusiness,
+  floridaBusiness,
+} from "../controllers/business";
 
 const router = express.Router();
 
 router.get("/california", californiaBusiness);
+router.get("/colorado", coloradoBusiness);
+router.get("/florida", floridaBusiness);
 
 export default router;
